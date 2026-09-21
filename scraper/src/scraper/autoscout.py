@@ -23,6 +23,7 @@ DEFAULT_LIST_PARAMS = {
     "ustate": "N,U",
     "atype": "C",
 }
+BUILD_ID_PAGE = "lst?" + urlencode(DEFAULT_LIST_PARAMS)
 # Tracking params that don't affect results.
 DROPPED_PARAMS = {"search_id", "source"}
 OFFER_PREFIX = "/offers/"
@@ -129,11 +130,13 @@ class AutoScoutScraper:
     def get_build_id(self, force: bool = False) -> str:
         if self._build_id and not force:
             return self._build_id
-        html = self._fetch(BASE_URL)
+        # The list page (HTML, not the .json route) is served by the same
+        # Next.js app as the data routes, so its buildId is the right one.
+        html = self._fetch(BASE_URL + BUILD_ID_PAGE)
         if isinstance(html, (bytes, bytearray)):
             html = html.decode("utf-8", errors="replace")
         if not isinstance(html, str):
-            raise BuildIdNotFound("Homepage did not return HTML")
+            raise BuildIdNotFound("List page did not return HTML")
         match = _NEXT_DATA_RE.search(html)
         if not match:
             raise BuildIdNotFound("__NEXT_DATA__ script not found")

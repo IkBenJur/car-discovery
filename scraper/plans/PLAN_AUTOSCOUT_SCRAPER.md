@@ -27,7 +27,7 @@ class AutoScoutScraper:
 ## 1. `get_build_id`
 - Fetch `https://www.autoscout24.com/` and read `buildId` from the `<script id="__NEXT_DATA__">` JSON.
 - Cache the result on the instance. `force=True` refetches it.
-- The homepage is a guess. Before relying on it, confirm live that its `buildId` matches the one the `lst.json` and `details/*.json` routes use. If it doesn't, switch to fetching a list page as HTML.
+- Fetch the list page as HTML (`/lst?<default params>`, no `.json`), not the homepage. The homepage did not yield a usable `buildId` in a live run.
 - Raise `BuildIdNotFound` if the script tag or key is missing.
 - See `scraper/plans/NEXT_BUILD_ID.md`.
 
@@ -98,9 +98,9 @@ Use a `FakeClient` that serves fixtures from `test-files/auto-scout/`. `list_dum
 2. The request layer, `get_build_id`, and their tests.
 3. `get_listings` and `get_offer`, with tests.
 4. `main()` demo, `.gitignore`, and updating the docs.
-5. One live run with a real key. It checks the homepage buildId assumption and the offer route end to end.
+5. One live run with a real key. It checks the list-page buildId and the offer route end to end.
 
 ## Open items
 - **Skip default:** confirm `get_offer` should skip parsed offers by default (the "helpers only" answer implied otherwise).
-- **Homepage buildId:** the homepage may not carry the same `buildId`. Step 5 verifies this.
+- **List-page buildId:** confirmed only by a live run (step 5).
 - **Sold or removed offers:** out of scope. They currently raise `RequestFailed`.

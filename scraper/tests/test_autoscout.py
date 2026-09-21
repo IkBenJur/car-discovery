@@ -22,6 +22,11 @@ def home_html(build_id: str) -> str:
     return f'<html><script id="__NEXT_DATA__" type="application/json">{data}</script></html>'
 
 
+def is_html_page(url: str) -> bool:
+    """The buildId page: https://www.autoscout24.com/lst?... (not /_next/data)."""
+    return url.startswith("https://www.autoscout24.com/lst?")
+
+
 def http_error(status: int) -> ScraperAPIException:
     original = Exception("boom")
     original.response = SimpleNamespace(status_code=status)
@@ -29,7 +34,7 @@ def http_error(status: int) -> ScraperAPIException:
 
 
 class FakeClient:
-    """Serves fixtures; `build_ids` is the sequence of homepage build IDs."""
+    """Serves fixtures; `build_ids` is the sequence of list-page build IDs."""
 
     def __init__(self, build_ids=("b1",), current="b1"):
         self.build_ids = list(build_ids)
@@ -41,7 +46,7 @@ class FakeClient:
         self.calls.append(url)
         if self.errors:
             raise self.errors.pop(0)
-        if url.rstrip("/") == "https://www.autoscout24.com":
+        if is_html_page(url):
             return home_html(self.build_ids.pop(0) if len(self.build_ids) > 1 else self.build_ids[0])
         if f"/_next/data/{self.current}/" not in url:
             raise http_error(404)
@@ -145,7 +150,7 @@ def test_stale_build_id_refreshes_once(tmp_path):
     page = s.get_listings()
     assert len(page.listings) == 20
     assert s.get_build_id() == "new"
-    assert sum(u.rstrip("/") == "https://www.autoscout24.com" for u in client.calls) == 2
+    assert sum(is_html_page(u) for u in client.calls) == 2
 
 
 def test_stale_build_id_gives_up(tmp_path):
