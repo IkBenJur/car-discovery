@@ -9,10 +9,10 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/IkBenJur/__PROJECT_SLUG__/internal/auth"
-	"github.com/IkBenJur/__PROJECT_SLUG__/internal/env"
-	"github.com/IkBenJur/__PROJECT_SLUG__/internal/postgres"
-	repo "github.com/IkBenJur/__PROJECT_SLUG__/internal/postgres/sqlc"
+	"github.com/IkBenJur/car-discovery/internal/auth"
+	"github.com/IkBenJur/car-discovery/internal/env"
+	"github.com/IkBenJur/car-discovery/internal/postgres"
+	repo "github.com/IkBenJur/car-discovery/internal/postgres/sqlc"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
@@ -26,7 +26,7 @@ func run(ctx context.Context) error {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
-	dsn := env.GetEnv("GOOSE_DBSTRING", "host=localhost user=postgres password=postgres dbname=__PROJECT_SLUG__ sslmode=disable")
+	dsn := env.GetEnv("GOOSE_DBSTRING", "host=localhost user=postgres password=postgres dbname=car-discovery sslmode=disable")
 
 	if err := postgres.RunMigrations(ctx, dsn); err != nil {
 		slog.Error("Failed to run migrations", "error", err)

@@ -1,11 +1,11 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: __PROJECT_SLUG__-postgres
+    container_name: car-discovery-postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: __PROJECT_SLUG__
+      POSTGRES_DB: car-discovery
     ports:
       - "5432:5432"
     volumes:

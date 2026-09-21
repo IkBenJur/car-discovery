@@ -4,11 +4,11 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/IkBenJur/__PROJECT_SLUG__/internal/auth"
-	"github.com/IkBenJur/__PROJECT_SLUG__/internal/json"
-	"github.com/IkBenJur/__PROJECT_SLUG__/internal/middleware"
-	repo "github.com/IkBenJur/__PROJECT_SLUG__/internal/postgres/sqlc"
-	"github.com/IkBenJur/__PROJECT_SLUG__/internal/utils"
+	"github.com/IkBenJur/car-discovery/internal/auth"
+	"github.com/IkBenJur/car-discovery/internal/json"
+	"github.com/IkBenJur/car-discovery/internal/middleware"
+	repo "github.com/IkBenJur/car-discovery/internal/postgres/sqlc"
+	"github.com/IkBenJur/car-discovery/internal/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 )

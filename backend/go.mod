@@ -1,4 +1,4 @@
-module github.com/IkBenJur/__PROJECT_SLUG__
+module github.com/IkBenJur/car-discovery
 
 go 1.26.2
 

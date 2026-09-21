@@ -4,7 +4,7 @@ import { useCurrentUser } from "~/hooks/useCurrentUser";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "__PROJECT_NAME__" },
+    { title: "car-discovery" },
     { name: "description", content: "Base Go + React starting point" },
   ];
 }
@@ -16,7 +16,7 @@ export default function Home() {
     <>
       <Header />
       <main className="mx-auto max-w-2xl px-6 py-12">
-        <h1 className="text-2xl font-bold">__PROJECT_NAME__</h1>
+        <h1 className="text-2xl font-bold">car-discovery</h1>
         <p className="mt-2 text-gray-500">
           A base Go + React starter with database, auth, and health-check wiring.
         </p>

@@ -1,4 +1,4 @@
-# __PROJECT_NAME__
+# car-discovery
 
 Base repo for Go + React projects.
 

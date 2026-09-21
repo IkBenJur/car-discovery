@@ -4,7 +4,7 @@ import { Button } from "~/components/ui/Button";
 import { useLogin } from "~/hooks/useLogin";
 
 export function meta() {
-  return [{ title: "Log in - __PROJECT_NAME__" }];
+  return [{ title: "Log in - car-discovery" }];
 }
 
 export default function Login() {
