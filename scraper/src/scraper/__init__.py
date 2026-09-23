@@ -16,16 +16,11 @@ def main() -> None:
 
     scraper = AutoScoutScraper(api_key)
     try:
-        page = scraper.get_listings(page_number=1)
+        result = scraper.scrape_new()
         print(
-            f"Wrote {page.dump_path} "
-            f"({len(page.listings)} listings, {page.number_of_pages} pages)"
+            f"Stopped ({result.stop_reason}) after {result.pages} page(s): "
+            f"{len(result.offers)} new offer(s), stop date "
+            f"{result.stop_date.strftime('%d-%m-%Y')}"
         )
-        todo = scraper.unparsed(page.listings)
-        if not todo:
-            print("No unparsed offers on this page")
-            return
-        result = scraper.get_offer(todo[0])
-        print(f"Wrote {result.path}")
     except AutoScoutError as e:
         sys.exit(f"Scrape failed: {e}")
