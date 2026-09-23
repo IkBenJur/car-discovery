@@ -249,7 +249,7 @@ class AutoScoutScraper:
         if should_parse_bytes_to_str:
             body = body.decode("utf-8", errors="replace")
 
-        is_string = not isinstance(body, str)
+        is_string = isinstance(body, str)
         if is_string:
             try:
                 body = json.loads(body)
