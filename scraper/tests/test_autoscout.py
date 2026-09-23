@@ -90,7 +90,7 @@ def test_list_url_merges_and_drops_params(tmp_path):
     client = FakeClient()
     s = make(tmp_path, client)
     s.get_listings(
-        {"cy": "DE", "search_id": "x", "utm_source": "y", "source": "z"}, page=3
+        {"cy": "DE", "search_id": "x", "utm_source": "y", "source": "z"}, page_number=3
     )
     url = client.calls[-1]
     assert "/_next/data/b1/lst.json?" in url
@@ -102,7 +102,7 @@ def test_list_url_merges_and_drops_params(tmp_path):
 
 def test_get_listings_dump_and_result(tmp_path):
     s = make(tmp_path, FakeClient())
-    page = s.get_listings(page=2)
+    page = s.get_listings(page_number=2)
     assert page.dump_path.parent == tmp_path / "dumps" / "list"
     assert page.dump_path.name.endswith("_page2.json")
     assert json.loads(page.dump_path.read_text()) == json.loads(LIST_JSON)

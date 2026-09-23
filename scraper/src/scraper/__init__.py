@@ -16,7 +16,7 @@ def main() -> None:
 
     scraper = AutoScoutScraper(api_key)
     try:
-        page = scraper.get_listings(page=1)
+        page = scraper.get_listings(page_number=1)
         print(
             f"Wrote {page.dump_path} "
             f"({len(page.listings)} listings, {page.number_of_pages} pages)"

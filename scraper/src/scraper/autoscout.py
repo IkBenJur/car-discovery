@@ -133,34 +133,41 @@ class AutoScoutScraper:
         # The list page (HTML, not the .json route) is served by the same
         # Next.js app as the data routes, so its buildId is the right one.
         html = self._fetch(BASE_URL + BUILD_ID_PAGE)
-        if isinstance(html, (bytes, bytearray)):
+
+        should_parse_bytes_to_str = isinstance(html, (bytes, bytearray))
+        if should_parse_bytes_to_str:
             html = html.decode("utf-8", errors="replace")
-        if not isinstance(html, str):
+
+        is_not_string = not isinstance(html, str)
+        if is_not_string:
             raise BuildIdNotFound("List page did not return HTML")
+
         match = _NEXT_DATA_RE.search(html)
         if not match:
             raise BuildIdNotFound("__NEXT_DATA__ script not found")
+
         try:
             build_id = json.loads(match.group(1))["buildId"]
         except (ValueError, KeyError, TypeError) as e:
             raise BuildIdNotFound("buildId missing from __NEXT_DATA__") from e
+
         self._build_id = build_id
         logger.info("buildId = %s", build_id)
         return build_id
 
     # -- listings --------------------------------------------------------
 
-    def get_listings(self, params: dict | None = None, page: int = 1) -> ListingsPage:
+    def get_listings(self, params: dict | None = None, page_number: int = 1) -> ListingsPage:
         query = {**DEFAULT_LIST_PARAMS, **(params or {})}
         for key in DROPPED_PARAMS:
             query.pop(key, None)
         query = {k: v for k, v in query.items() if not k.startswith("utm_")}
-        query["page"] = page
-        qs = urlencode(query)
-        data = self._get_data_json(lambda b: f"_next/data/{b}/lst.json?{qs}")
+        query["page"] = page_number
+        query_string = urlencode(query)
+        data = self._get_data_json(lambda build_id: f"_next/data/{build_id}/lst.json?{query_string}")
 
-        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
-        path = self.output_dir / "list" / f"{stamp}_page{page}.json"
+        time_stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+        path = self.output_dir / "list" / f"{time_stamp}_page{page_number}.json"
         self._write_dump(path, data)
 
         props = data.get("pageProps", {})
@@ -177,12 +184,14 @@ class AutoScoutScraper:
         listing_id = listing["id"]
         if not force and self.is_parsed(listing_id):
             recorded = self._tracker.get(listing_id) or {}
+
+            # Create dump result when already parsed
             return OfferResult(
                 listing_id, self.output_dir / recorded.get("dump", ""), skipped=True
             )
 
         slug = self._slug(listing)
-        data = self._get_data_json(lambda b: f"_next/data/{b}/details/{slug}.json")
+        data = self._get_data_json(lambda build_id: f"_next/data/{build_id}/details/{slug}.json")
 
         path = self.output_dir / "offers" / f"{listing_id}.json"
         self._write_dump(path, data)
@@ -217,25 +226,39 @@ class AutoScoutScraper:
 
     def _get_data_json(self, build_path) -> dict:
         """Fetch a Next.js data route, refreshing the buildId once if stale."""
-        for refreshed in (False, True):
-            build_id = self.get_build_id(force=refreshed)
-            try:
-                return self._get_json(BASE_URL + build_path(build_id))
-            except _StaleRoute:
-                logger.warning("Data route failed with buildId %s", build_id)
+        build_id = self.get_build_id(force=False)
+        try:
+            return self._get_json(BASE_URL + build_path(build_id))
+        except _StaleRoute:
+            logger.warning("Data route failed with buildId %s", build_id)
+
+        # Try again but this time with new build_id
+        build_id = self.get_build_id(force=True)
+        try:
+            return self._get_json(BASE_URL + build_path(build_id))
+        except _StaleRoute:
+            logger.warning("Data route failed with buildId %s", build_id)
+
+        # New build_id didn't help
         raise StaleBuildId("Data route failed even after refreshing the buildId")
 
     def _get_json(self, url: str) -> dict:
         body = self._fetch(url, stale_on_404=True)
-        if isinstance(body, (bytes, bytearray)):
+
+        should_parse_bytes_to_str = isinstance(body, (bytes, bytearray))
+        if should_parse_bytes_to_str:
             body = body.decode("utf-8", errors="replace")
-        if isinstance(body, str):
+
+        is_string = not isinstance(body, str)
+        if is_string:
             try:
                 body = json.loads(body)
             except ValueError:
                 raise _StaleRoute(url)
+
         if not isinstance(body, dict):
             raise _StaleRoute(url)
+
         return body
 
     def _fetch(self, url: str, stale_on_404: bool = False) -> Any:
