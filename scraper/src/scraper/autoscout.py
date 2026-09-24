@@ -10,7 +10,7 @@ from typing import Any
 from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
-from scraperapi_sdk import ScraperAPIClient, ScraperAPIException
+from scraper.clients import Client, ClientError
 
 logger = logging.getLogger(__name__)
 
@@ -103,11 +103,6 @@ class _StaleRoute(Exception):
     """Internal: response suggests the buildId is outdated."""
 
 
-def _status_code(exc: ScraperAPIException) -> int | None:
-    response = getattr(exc.original_exception, "response", None)
-    return getattr(response, "status_code", None)
-
-
 class ParsedOfferTracker:
     """JSON-file-backed record of offers whose dump has been written."""
 
@@ -168,17 +163,16 @@ class ParsedOfferTracker:
 class AutoScoutScraper:
     def __init__(
         self,
-        api_key: str,
+        client: Client,
         *,
         output_dir: Path | str = "data/dumps",
         state_path: Path | str = "data/parsed_offers.json",
         request_params: dict | None = None,
         min_delay: float = 0.0,
         max_retries: int = 3,
-        client: Any = None,
         sleep=time.sleep,
     ):
-        self._client = client or ScraperAPIClient(api_key)
+        self._client = client
         self.output_dir = Path(output_dir)
         self.request_params = dict(request_params or {})
         self.min_delay = min_delay
@@ -395,8 +389,8 @@ class AutoScoutScraper:
                 result = self._client.get(
                     url=url, params=dict(self.request_params) or None
                 )
-            except ScraperAPIException as e:
-                status = _status_code(e)
+            except ClientError as e:
+                status = e.status_code
                 logger.info(
                     "GET %s attempt=%d status=%s %.2fs",
                     url, attempt, status, time.monotonic() - started,

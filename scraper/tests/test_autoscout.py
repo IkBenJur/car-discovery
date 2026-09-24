@@ -2,17 +2,15 @@ import json
 import re
 from datetime import date, datetime
 from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
-from scraperapi_sdk import ScraperAPIException
-
 from scraper.autoscout import (
     AutoScoutScraper,
     BuildIdNotFound,
     RequestFailed,
     StaleBuildId,
 )
+from scraper.clients import ClientError
 
 FIXTURES = Path(__file__).resolve().parents[1] / "test-files" / "auto-scout"
 LIST_JSON = (FIXTURES / "list_dump.json").read_text()
@@ -29,10 +27,8 @@ def is_html_page(url: str) -> bool:
     return url.startswith("https://www.autoscout24.com/lst?")
 
 
-def http_error(status: int) -> ScraperAPIException:
-    original = Exception("boom")
-    original.response = SimpleNamespace(status_code=status)
-    return ScraperAPIException("failed", original)
+def http_error(status: int) -> ClientError:
+    return ClientError("failed", status)
 
 
 class FakeClient:
@@ -62,8 +58,7 @@ def listing():
 
 def make(tmp_path, client, **kw):
     return AutoScoutScraper(
-        "key",
-        client=client,
+        client,
         output_dir=tmp_path / "dumps",
         state_path=tmp_path / "state.json",
         sleep=lambda s: None,

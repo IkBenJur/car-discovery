@@ -10,6 +10,7 @@ requires-python = ">=3.14"
 dependencies = [
     "python-dotenv>=1.2.3",
     "scraperapi-sdk>=1.6.1",
+    "zenrows>=1.4.1",
 ]
 
 [project.scripts]
